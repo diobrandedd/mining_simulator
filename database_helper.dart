@@ -56,4 +56,15 @@ class DatabaseHelper {
       return null;
     }
   }
+  Future<Map<String, dynamic>?> getUserById(int id) async {
+    Database db = await instance.database;
+    List<Map<String, dynamic>> result = await db.query('users', where: 'id = ?', whereArgs: [id]);
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<int> updateUser(int id, Map<String, dynamic> updates) async {
+    Database db = await instance.database;
+    return await db.update('users', updates, where: 'id = ?', whereArgs: [id]);
+  }
+
 }

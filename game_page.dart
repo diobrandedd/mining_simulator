@@ -1,6 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'database_helper.dart';
 
+void main() {
+  runApp(MaterialApp(
+    home: GamePage(userId: 1), // Replace 1 with actual userId
+  ));
+}
+
+// GamePage Class
 class GamePage extends StatelessWidget {
   final int userId;
 
@@ -21,7 +29,7 @@ class GamePage extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (BuildContext context) => MiningSim(),
+                    builder: (BuildContext context) => MiningSim(userId: userId),
                   ),
                 );
               },
@@ -39,23 +47,37 @@ class GamePage extends StatelessWidget {
   }
 }
 
+// MiningSim Class
 class MiningSim extends StatelessWidget {
+  final int userId;
+
+  MiningSim({required this.userId});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Mining Simulator',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: MiningGame(),
+      home: MiningGame(userId: userId),
     );
   }
 }
 
+// MiningGame Class
 class MiningGame extends StatefulWidget {
+  final int userId;
+
+  MiningGame({required this.userId});
+
   @override
   _MiningGameState createState() => _MiningGameState();
 }
 
 class _MiningGameState extends State<MiningGame> {
+  late int userId;
+  late String username = '';
+  late String email = '';
+  late String password = '';
   int blockHp = 100;
   int gold = 0;
   Map<String, int> inventory = {};
@@ -68,9 +90,156 @@ class _MiningGameState extends State<MiningGame> {
     'Diamond Pickaxe': 50,
   };
   List<String> toolInventory = ['Wooden Pickaxe'];
-  String username = "Player1";
-  String email = "player1@example.com";
-  String password = "password123";
+
+  @override
+  void initState() {
+    super.initState();
+    userId = widget.userId;
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final db = DatabaseHelper.instance;
+    final user = await db.getUserById(userId);
+    if (user != null) {
+      setState(() {
+        username = user['username'];
+        email = user['email'];
+        password = user['password'];
+      });
+    }
+  }
+
+  Future<void> _updateUserData(String newUsername, String newPassword) async {
+    final db = DatabaseHelper.instance;
+    await db.updateUser(userId, {
+      'username': newUsername,
+      'password': newPassword,
+    });
+    await _loadUserData(); // Refresh local state
+  }
+
+  void openSettingsDialog() {
+    TextEditingController usernameController = TextEditingController(text: username);
+    TextEditingController passwordController = TextEditingController(text: password);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Settings"),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: usernameController,
+                  decoration: InputDecoration(labelText: "Username"),
+                ),
+                TextField(
+                  controller: passwordController,
+                  decoration: InputDecoration(labelText: "Password"),
+                  obscureText: true,
+                ),
+                TextField(
+                  controller: TextEditingController(text: email),
+                  decoration: InputDecoration(labelText: "Email (non-editable)"),
+                  readOnly: true,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _updateUserData(
+                  usernameController.text,
+                  passwordController.text,
+                );
+                Navigator.of(context).pop();
+              },
+              child: Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void mineBlock() {
+    setState(() {
+      blockHp -= pickaxeEfficiency[currentPickaxe]!;
+      if (blockHp <= 0) {
+        generateOre();
+        blockHp = 100;
+      }
+    });
+  }
+
+  void generateOre() {
+    Random random = Random();
+    int chance = random.nextInt(100);
+
+    String ore = chance > 90
+        ? 'Diamond'
+        : chance > 70
+        ? 'Gold'
+        : 'Iron';
+
+    int oreValue = ore == 'Diamond'
+        ? 50
+        : ore == 'Gold'
+        ? 20
+        : 5;
+
+    inventory[ore] = (inventory[ore] ?? 0) + 1;
+    gold += oreValue;
+    minedOre = ore;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('You mined: $ore!')),
+    );
+  }
+
+  void gambleForPickaxe() {
+    if (gold < 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Not enough gold!')),
+      );
+      return;
+    }
+
+    setState(() {
+      gold -= 100;
+
+      List<String> pickaxes = [
+        'Stone Pickaxe',
+        'Golden Pickaxe',
+        'Diamond Pickaxe'
+      ];
+
+      String newPickaxe = pickaxes[Random().nextInt(pickaxes.length)];
+      toolInventory.add(newPickaxe);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You got: $newPickaxe!')),
+      );
+    });
+  }
+
+  void selectPickaxe(String pickaxe) {
+    setState(() {
+      currentPickaxe = pickaxe;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Selected: $pickaxe!')),
+    );
+  }
 
   void _showToolsModal(BuildContext context) {
     showModalBottomSheet(
@@ -150,146 +319,10 @@ class _MiningGameState extends State<MiningGame> {
     );
   }
 
-  void openSettingsDialog() {
-    TextEditingController usernameController = TextEditingController(text: username);
-    TextEditingController passwordController = TextEditingController(text: password);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Settings"),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(labelText: "Username"),
-                ),
-                TextField(
-                  controller: passwordController,
-                  decoration: InputDecoration(labelText: "Password"),
-                  obscureText: true,
-                ),
-                TextField(
-                  controller: TextEditingController(text: email),
-                  decoration: InputDecoration(labelText: "Email (non-editable)"),
-                  readOnly: true,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  username = usernameController.text;
-                  password = passwordController.text;
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text("Save"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void mineBlock() {
-    setState(() {
-      blockHp -= pickaxeEfficiency[currentPickaxe]!;
-      if (blockHp <= 0) {
-        generateOre();
-        blockHp = 100;
-      }
-    });
-  }
-
-  void generateOre() {
-    Random random = Random();
-    int chance = random.nextInt(100);
-
-    String ore = chance > 90
-        ? 'Diamond'
-        : chance > 70
-        ? 'Gold'
-        : 'Iron';
-
-    int oreValue = ore == 'Diamond'
-        ? 50
-        : ore == 'Gold'
-        ? 20
-        : 5;
-
-    inventory[ore] = (inventory[ore] ?? 0) + 1;
-    gold += oreValue;
-    minedOre = ore;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('You mined: $ore!')),
-    );
-  }
-
-  void gambleForPickaxe() {
-    if (gold < 100) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Not enough gold!')),
-      );
-      return;
-    }
-
-    setState(() {
-      gold -= 100;
-
-      List<String> pickaxes = [
-        'Stone Pickaxe',
-        'Golden Pickaxe',
-        'Diamond Pickaxe'
-      ];
-
-      String newPickaxe = pickaxes[Random().nextInt(pickaxes.length)];
-      toolInventory.add(newPickaxe);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('You got: $newPickaxe!')),
-      );
-    });
-  }
-
-  void selectPickaxe(String pickaxe) {
-    setState(() {
-      currentPickaxe = pickaxe;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Selected: $pickaxe!')),
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Builder(
-          builder: (BuildContext context) {
-            return GestureDetector(
-              onTap: () {
-                Scaffold.of(context).openDrawer(); // Open the drawer manually
-              },
-              child: Image.asset(
-                'assets/images/drawer.png',
-                width: 30,
-                height: 30,
-              ),
-            );
-          },
-        ),
         title: Text('Mining Simulator'),
         actions: [
           Padding(
@@ -300,40 +333,6 @@ class _MiningGameState extends State<MiningGame> {
           ),
         ],
       ),
-
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: mineBlock,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/block.png',
-                    height: 150,
-                    width: 150,
-                  ),
-                  Text(
-                    '$blockHp',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: gambleForPickaxe,
-              child: Text('Gamble for Pickaxe (100 Gold)'),
-            ),
-          ],
-        ),
-      ),
       drawer: Drawer(
         backgroundColor: Colors.black12,
         child: ListView(
@@ -341,22 +340,17 @@ class _MiningGameState extends State<MiningGame> {
             DrawerHeader(
               child: Column(
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      // Add functionality for user profile if needed.
-                    },
-                    child: CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.blueGrey,
-                      child: Text(
-                        username.isNotEmpty ? username[0].toUpperCase() : 'P',
-                        style: TextStyle(fontSize: 24, color: Colors.white),
-                      ),
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.blueGrey,
+                    child: Text(
+                      username.isNotEmpty ? username[0].toUpperCase() : 'P',
+                      style: TextStyle(fontSize: 24, color: Colors.white),
                     ),
                   ),
                   SizedBox(height: 10),
                   Text(
-                    username, // Use dynamic username
+                    username.isNotEmpty ? username : 'Player',
                     style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ],
@@ -364,22 +358,47 @@ class _MiningGameState extends State<MiningGame> {
             ),
             ListTile(
               title: Text("Tools", style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context); // Close drawer before showing modal.
-                _showToolsModal(context);
-              },
+              leading: Icon(Icons.construction, color: Colors.white),
+              onTap: () => _showToolsModal(context),
             ),
             ListTile(
               title: Text("Inventory", style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context); // Close drawer before showing modal.
-                _showInventoryModal(context);
-              },
+              leading: Icon(Icons.inventory, color: Colors.white),
+              onTap: () => _showInventoryModal(context),
+            ),
+            ListTile(
+              title: Text("Settings", style: TextStyle(color: Colors.white)),
+              leading: Icon(Icons.settings, color: Colors.white),
+              onTap: openSettingsDialog,
             ),
           ],
         ),
       ),
-
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: mineBlock,
+              child: Image.asset(
+                'assets/images/block.png',
+                width: 150,
+                height: 150,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Text(
+              "Block HP: $blockHp",
+              style: TextStyle(fontSize: 18),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: gambleForPickaxe,
+              child: Text("Gamble (100 Gold)"),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
