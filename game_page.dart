@@ -2,13 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
 
-void main() {
-  runApp(MaterialApp(
-    home: GamePage(userId: 1), // Replace 1 with actual userId
-  ));
-}
-
-// GamePage Class
 class GamePage extends StatelessWidget {
   final int userId;
 
@@ -17,53 +10,44 @@ class GamePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 50),
-            Text('Welcome to', style: TextStyle(fontSize: 30)),
-            Text('MINING SIM', style: TextStyle(fontSize: 60)),
-            SizedBox(height: 50),
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => MiningSim(userId: userId),
-                  ),
-                );
-              },
-              child: Image.asset(
-                'assets/images/startB.png',
-                width: 200,
-                height: 80,
-                fit: BoxFit.cover,
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(image:
+          AssetImage("assets/images/pixelBg.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 50),
+              Text('Welcome to', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Colors.white)),
+              Text('MINING SIM', style: TextStyle(fontSize: 60,fontWeight: FontWeight.w900, color: Colors.white,)),
+              SizedBox(height: 50),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => MiningGame(userId: userId),
+                    ),
+                  );
+                },
+                child: Image.asset(
+                  'assets/images/startB.png',
+                  width: 200,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// MiningSim Class
-class MiningSim extends StatelessWidget {
-  final int userId;
-
-  MiningSim({required this.userId});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mining Simulator',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: MiningGame(userId: userId),
-    );
-  }
-}
-
-// MiningGame Class
 class MiningGame extends StatefulWidget {
   final int userId;
 
@@ -74,10 +58,10 @@ class MiningGame extends StatefulWidget {
 }
 
 class _MiningGameState extends State<MiningGame> {
-  late int userId;
   late String username = '';
   late String email = '';
   late String password = '';
+
   int blockHp = 100;
   int gold = 0;
   Map<String, int> inventory = {};
@@ -94,13 +78,12 @@ class _MiningGameState extends State<MiningGame> {
   @override
   void initState() {
     super.initState();
-    userId = widget.userId;
     _loadUserData();
   }
 
   Future<void> _loadUserData() async {
     final db = DatabaseHelper.instance;
-    final user = await db.getUserById(userId);
+    final user = await db.getUserById(widget.userId);
     if (user != null) {
       setState(() {
         username = user['username'];
@@ -112,7 +95,7 @@ class _MiningGameState extends State<MiningGame> {
 
   Future<void> _updateUserData(String newUsername, String newPassword) async {
     final db = DatabaseHelper.instance;
-    await db.updateUser(userId, {
+    await db.updateUser(widget.userId, {
       'username': newUsername,
       'password': newPassword,
     });
@@ -127,7 +110,7 @@ class _MiningGameState extends State<MiningGame> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Settings"),
+          title: Text("Edit Profile"),
           content: SingleChildScrollView(
             child: Column(
               children: [
@@ -235,10 +218,10 @@ class _MiningGameState extends State<MiningGame> {
   void selectPickaxe(String pickaxe) {
     setState(() {
       currentPickaxe = pickaxe;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Selected: $pickaxe!')),
+      );
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Selected: $pickaxe!')),
-    );
   }
 
   void _showToolsModal(BuildContext context) {
@@ -323,6 +306,20 @@ class _MiningGameState extends State<MiningGame> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (BuildContext context) {
+            return GestureDetector(
+              onTap: () {
+                Scaffold.of(context).openDrawer(); // Open the drawer manually
+              },
+              child: Image.asset(
+                'assets/images/drawer.png',
+                width: 30,
+                height: 30,
+              ),
+            );
+          },
+        ),
         title: Text('Mining Simulator'),
         actions: [
           Padding(
@@ -350,7 +347,7 @@ class _MiningGameState extends State<MiningGame> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    username.isNotEmpty ? username : 'Player',
+                    username,
                     style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ],
@@ -358,18 +355,25 @@ class _MiningGameState extends State<MiningGame> {
             ),
             ListTile(
               title: Text("Tools", style: TextStyle(color: Colors.white)),
-              leading: Icon(Icons.construction, color: Colors.white),
-              onTap: () => _showToolsModal(context),
+              onTap: () {
+                Navigator.pop(context);
+                _showToolsModal(context);
+              },
             ),
             ListTile(
               title: Text("Inventory", style: TextStyle(color: Colors.white)),
-              leading: Icon(Icons.inventory, color: Colors.white),
-              onTap: () => _showInventoryModal(context),
+              onTap: () {
+                Navigator.pop(context);
+                _showInventoryModal(context);
+              },
             ),
             ListTile(
+              leading: Image.asset('assets/images/settings.png', width: 60, height: 60),
               title: Text("Settings", style: TextStyle(color: Colors.white)),
-              leading: Icon(Icons.settings, color: Colors.white),
-              onTap: openSettingsDialog,
+              onTap: () {
+                Navigator.pop(context);
+                openSettingsDialog();
+              },
             ),
           ],
         ),
@@ -378,23 +382,22 @@ class _MiningGameState extends State<MiningGame> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text('Block HP: $blockHp'),
+            SizedBox(height: 20),
             GestureDetector(
               onTap: mineBlock,
               child: Image.asset(
                 'assets/images/block.png',
                 width: 150,
                 height: 150,
-                fit: BoxFit.cover,
               ),
             ),
-            Text(
-              "Block HP: $blockHp",
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
+            Text('Current Pickaxe: $currentPickaxe'),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: gambleForPickaxe,
-              child: Text("Gamble (100 Gold)"),
+              child: Text('Gamble for Pickaxe (100 Gold)'),
             ),
           ],
         ),
