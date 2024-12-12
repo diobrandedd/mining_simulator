@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:miningsim/game_page.dart';
 import 'package:miningsim/login_page.dart';
 
 void main() {
+  var userId;
   runApp(MyApp());
 }
 

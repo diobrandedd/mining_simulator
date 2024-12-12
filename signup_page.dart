@@ -53,42 +53,97 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Sign Up')),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(image:
+          AssetImage("assets/images/loginBg.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Username'),
+            Text(
+              'SIGN UP',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900,color: Colors.white),
             ),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
+            Padding(
+              padding: EdgeInsets.all(40.0),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                prefixIcon: Icon(Icons.person,color: Colors.white,),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Colors.white,
             ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: InputDecoration(labelText: 'Confirm Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _signup,
-              child: Text('Sign Up'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
-              },
-              child: Text('Already have an account? Log in'),
+          ),
+          labelText: 'Username',labelStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,),
+                  ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.email,color: Colors.white,),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                          ),
+                        ),
+                        labelText: 'Email',labelStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.lock,color: Colors.white,),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                          ),
+                        ),
+                        labelText: 'Password',labelStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,),
+                    ),
+                    obscureText: true,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.lock_outline,color: Colors.white,),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                          ),
+                        ),
+                        labelText: 'Confirm Password',labelStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,),
+                    ),
+                    obscureText: true,
+                  ),
+                  SizedBox(height: 5),
+                  GestureDetector(
+                    onTap: _signup,
+                    child: Image.asset(
+                      'assets/images/signU.png', // Replace with your image path
+                      width: 150,
+                      fit: BoxFit.contain,// Adjust size as needed
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
+                    },
+                    child: Text('Already have an account? Log in',style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,) ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

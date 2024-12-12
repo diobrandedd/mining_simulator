@@ -41,52 +41,72 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Log In')),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'LOG IN',
-            style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(image:
+          AssetImage("assets/images/loginBg.png"),
+            fit: BoxFit.cover,
           ),
-          Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Email'),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                          labelText: 'Password'),
-                      obscureText: true,
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _login,
-                      child: Text('Log In'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => SignupPage()),
-                        );
-                      },
-                      child: Text('Don\'t have an account? Sign up'),
-                    ),
-                  ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'LOG IN',
+              style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900,color: Colors.white),
+            ),
+            Center(
+                child: Padding(
+                  padding: EdgeInsets.all(50),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _emailController,
+                        decoration:InputDecoration(
+                          prefixIcon: Icon(Icons.person,color: Colors.white,),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white,
+                            ),
+                          ),
+                            labelText: 'Email',labelStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,)),
+                      ),
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.lock,color: Colors.white,),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white,
+                            ),
+                        ),
+                            labelText: 'Password',labelStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,)),
+                        obscureText: true,
+                      ),
+                      SizedBox(height: 20),
+                      GestureDetector(
+                        onTap: _login,
+                        child: Image.asset(
+                          'assets/images/loginB.png', // Replace with your image path
+                          width: 150, // Adjust size as needed
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => SignupPage()),
+                          );
+                        },
+                        child: Text('Don\'t have an account? Sign up',style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,),),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
