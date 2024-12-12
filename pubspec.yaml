@@ -64,14 +64,34 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
   - assets/images/
-  - assets/images/block.png
+  - assets/images/Stone.png
   - assets/images/diamond.png
   - assets/images/drawer.png
   - assets/images/settings.png
   - assets/images/startB.png
   - assets/images/startBonP.png
   - assets/images/pixelBg.png
-
+  - assets/images/loginB.png
+  - assets/images/loginBg.png
+  - assets/images/title.png
+  - assets/images/underG.png
+  - assets/images/pixelG.png
+  - assets/Images/iron_ore.png
+  - assets/images/diamond_ore.png
+  - assets/images/gold_ore.png
+  - assets/images/Stone_phase2.png
+  - assets/images/Stone_phase3.png
+  - assets/images/Stone_phase4.png
+  - assets/images/obsidian_rock.png
+  - assets/images/woodenpickaxe.png
+  - assets/images/goldenpick.png
+  - assets/images/diamondpick.png
+  - assets/images/stonepick.png
+  - assets/images/inventory.png
+  - assets/images/tools.png
+  - assets/images/gambling.png
+  - assets/images/logout.png
+  - assets/images/signU.png
   - assets/audio/
 
   # An image asset can refer to one or more resolution-specific "variants", see
